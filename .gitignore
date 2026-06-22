@@ -1,0 +1,28 @@
+# Rust / Cargo build output
+/target
+**/target
+
+# Node / Bun dependencies
+**/node_modules
+
+# SvelteKit / Vite
+/web/.svelte-kit
+/web/build
+/web/dist
+/web/.vite
+
+# wasm-pack output (generated from kvs-core by `bun run wasm`)
+/web/src/lib/wasm
+
+# Vercel CLI
+.vercel
+
+# Logs
+*.log
+npm-debug.log*
+bun-debug.log*
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp

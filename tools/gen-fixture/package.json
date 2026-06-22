@@ -1,0 +1,13 @@
+{
+  "name": "kvs-gen-fixture",
+  "private": true,
+  "type": "module",
+  "description": "Generates a real C++-LevelDB fixture (via classic-level) shaped like a FiveM KVS store, for the kvs-core compatibility test.",
+  "scripts": {
+    "gen": "node gen.mjs"
+  },
+  "dependencies": {
+    "@msgpack/msgpack": "^3.0.0",
+    "classic-level": "^1.4.1"
+  }
+}
