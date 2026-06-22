@@ -1,4 +1,8 @@
-name: CI & Deploy
+name: CI
+
+# Builds the wasm core + static site and runs the tests on every push/PR.
+# Deployment is handled by Vercel's Git integration (it builds only the
+# Rust-free web app from the committed wasm) — see README.
 
 on:
   push:
@@ -7,13 +11,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  build-and-test:
     runs-on: ubuntu-latest
-    env:
-      # Empty when the secret isn't set — the deploy step is skipped in that case.
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
       - uses: actions/checkout@v4
 
@@ -36,9 +35,7 @@ jobs:
       - name: Install web dependencies
         run: cd web && bun install --frozen-lockfile
 
-      # Builds the release wasm core + the static site into web/build
-      # (and strips the dev-only sample data).
-      - name: Build
+      - name: Build (release wasm + static site)
         run: bun run build
 
       - name: Type-check
@@ -46,14 +43,3 @@ jobs:
 
       - name: Rust tests
         run: cargo test --manifest-path kvs-core/Cargo.toml
-
-      # Deploy the prebuilt static output to Vercel (master only, and only once
-      # the Vercel secrets are configured).
-      - name: Deploy to Vercel
-        if: github.ref == 'refs/heads/master' && env.VERCEL_TOKEN != ''
-        run: |
-          mkdir -p .vercel/output/static
-          cp -r web/build/. .vercel/output/static/
-          printf '%s' '{"version":3,"routes":[{"handle":"filesystem"},{"src":"/.*","dest":"/index.html"}]}' > .vercel/output/config.json
-          npm install --global vercel@latest
-          vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"

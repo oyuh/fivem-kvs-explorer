@@ -52,27 +52,29 @@ The output of `bun run build` in `web/build/` is plain static files — host it 
 (Vercel, Cloudflare Pages, GitHub Pages, Netlify, …). No server, no special headers required.
 The dev-only **sample data** is stripped from production builds.
 
-## Deploy (Vercel via GitHub Actions)
+## Deploy (Vercel)
 
-Because the app compiles Rust → wasm, the build runs in **GitHub Actions** (which has the
-Rust toolchain) and the prebuilt static output is shipped to **Vercel**. The workflow lives
-in [.github/workflows/deploy.yml](.github/workflows/deploy.yml): on every push to `master`
-it installs Rust + wasm-pack + Bun, runs `bun run build`, type-checks, runs the tests, and
-deploys.
+Vercel's build servers don't have a Rust toolchain, so the compiled wasm core is
+**committed** at `web/src/lib/wasm/`. Vercel then builds only the (Rust-free) SvelteKit app.
+The install/build/output settings live in [vercel.json](vercel.json).
 
-One-time setup:
+Set it up once:
 
-1. Create a Vercel project (Framework preset: **Other** — it's ignored, we deploy prebuilt).
-   Locally: `npm i -g vercel && vercel link` — this writes `.vercel/project.json` with your
-   org and project IDs.
-2. Add three **GitHub repository secrets** (Settings → Secrets and variables → Actions):
-   - `VERCEL_TOKEN` — from Vercel → Account Settings → Tokens
-   - `VERCEL_ORG_ID` — from `.vercel/project.json`
-   - `VERCEL_PROJECT_ID` — from `.vercel/project.json`
+1. Import the GitHub repo at [vercel.com/new](https://vercel.com/new).
+2. Leave **Root Directory** as `./` and **Framework Preset** as **Other** — the root
+   `vercel.json` supplies the rest.
+3. Click **Deploy**. Every push to `master` then auto-deploys. The dev-only sample data is
+   stripped from production builds.
 
-Until those secrets exist, the build/test steps still run on every push; the deploy step is
-skipped automatically. (Don't also enable Vercel's own Git integration — Vercel's build
-image has no Rust toolchain, so let Actions do the building.)
+> **After changing the Rust crate** (`kvs-core`), rebuild and commit the wasm so Vercel
+> ships it:
+>
+> ```bash
+> bun run wasm && git add web/src/lib/wasm && git commit -m "rebuild wasm"
+> ```
+>
+> CI ([.github/workflows/deploy.yml](.github/workflows/deploy.yml)) rebuilds the wasm and
+> runs the tests on every push, so breakage is caught regardless.
 
 ## Project layout
 

@@ -11,8 +11,9 @@
 /web/dist
 /web/.vite
 
-# wasm-pack output (generated from kvs-core by `bun run wasm`)
-/web/src/lib/wasm
+# NOTE: web/src/lib/wasm (the wasm-pack output) is intentionally committed so
+# Vercel can build the site without a Rust toolchain. Rebuild it with
+# `bun run wasm` and commit the result whenever the Rust crate changes.
 
 # Vercel CLI
 .vercel

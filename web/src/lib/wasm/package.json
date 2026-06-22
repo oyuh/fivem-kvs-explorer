@@ -1,0 +1,16 @@
+{
+  "name": "kvs-core",
+  "type": "module",
+  "description": "Portable core for reading/writing FiveM KVS (a LevelDB database) — usable natively and as wasm.",
+  "version": "0.1.0",
+  "files": [
+    "kvs_core_bg.wasm",
+    "kvs_core.js",
+    "kvs_core.d.ts"
+  ],
+  "main": "kvs_core.js",
+  "types": "kvs_core.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
