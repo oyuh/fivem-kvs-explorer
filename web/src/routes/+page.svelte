@@ -33,6 +33,7 @@
 	import Icon from '$lib/components/Icon.svelte';
 	import Splitter from '$lib/components/Splitter.svelte';
 	import ImportDialog from '$lib/components/ImportDialog.svelte';
+	import AddEntryDialog from '$lib/components/AddEntryDialog.svelte';
 
 	let supported = $state<boolean | null>(null);
 	let isBrave = $state(false);
@@ -66,6 +67,10 @@
 
 	// The bundled sample data is a dev-only convenience; never shipped to prod.
 	const dev = import.meta.env.DEV;
+
+	// Add-entry dialog.
+	let addOpen = $state(false);
+	let addDefaultResource = $state('');
 
 	onMount(() => {
 		const force = new URLSearchParams(location.search).get('force');
@@ -266,6 +271,30 @@
 		importFolderName = '';
 	}
 
+	function openAddKey() {
+		addDefaultResource = selectedGroup.startsWith('res:') ? selectedGroup.slice(4) : '';
+		addOpen = true;
+	}
+	function openAddResource() {
+		addDefaultResource = '';
+		addOpen = true;
+	}
+	function confirmAdd(rawKey: string, value: unknown, kind: ValueKind) {
+		if (!session) return;
+		try {
+			putValue(session, rawKey, value, kind);
+			modifiedKeys = new Set(modifiedKeys).add(rawKey);
+			refreshEntries();
+			if (rawKey.startsWith('res:')) selectedGroup = `res:${rawKey.slice(4).split(':')[0]}`;
+			search = '';
+			selectedKey = rawKey;
+			addOpen = false;
+			flash('ok', 'Entry added — Save to disk to write it.');
+		} catch (err) {
+			flash('err', `Add failed: ${err}`);
+		}
+	}
+
 	function onDragEnter(e: DragEvent) {
 		if (!e.dataTransfer) return;
 		dragDepth++;
@@ -330,6 +359,7 @@
 	const selectedEntry = $derived(entries.find((e) => e.rawKey === selectedKey) ?? null);
 	const readOnly = $derived(!session?.dir);
 	const existingKeys = $derived(new Set(entries.map((e) => e.rawKey)));
+	const resourceNames = $derived(groups.filter((g) => g.type === 'res').map((g) => g.label));
 </script>
 
 {#if supported === null}
@@ -353,6 +383,7 @@
 				{:else if modifiedKeys.size > 0}
 					<span class="modified">{modifiedKeys.size} unsaved</span>
 				{/if}
+				<button onclick={openAddKey}><Icon name="plus" size={14} /> Add key</button>
 				<button onclick={openImport}><Icon name="import" size={14} /> Import…</button>
 				<button
 					class="primary"
@@ -383,7 +414,12 @@
 			>
 				<div class="panes">
 					<aside class="col tree" style="width:{leftW}px">
-						<ResourceTree {groups} selected={selectedGroup} onselect={(id) => (selectedGroup = id)} />
+						<ResourceTree
+							{groups}
+							selected={selectedGroup}
+							onselect={(id) => (selectedGroup = id)}
+							onaddresource={openAddResource}
+						/>
 					</aside>
 					<Splitter onresize={(dx) => (leftW = clampW(leftW + dx, 160, 520))} />
 					<section class="col entries" style="width:{midW}px">
@@ -425,6 +461,16 @@
 			{existingKeys}
 			onconfirm={confirmImport}
 			oncancel={closeImport}
+		/>
+	{/if}
+
+	{#if addOpen}
+		<AddEntryDialog
+			resources={resourceNames}
+			defaultResource={addDefaultResource}
+			{existingKeys}
+			onconfirm={confirmAdd}
+			oncancel={() => (addOpen = false)}
 		/>
 	{/if}
 {/if}

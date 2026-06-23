@@ -1,13 +1,15 @@
 <script lang="ts">
 	import type { Group } from '$lib/types';
+	import Icon from './Icon.svelte';
 
 	interface Props {
 		groups: Group[];
 		selected: string;
 		onselect: (id: string) => void;
+		onaddresource?: () => void;
 	}
 
-	let { groups, selected, onselect }: Props = $props();
+	let { groups, selected, onselect, onaddresource }: Props = $props();
 
 	let filter = $state('');
 
@@ -21,6 +23,12 @@
 </script>
 
 <div class="tree">
+	<div class="head">
+		<span class="head-label">Resources</span>
+		{#if onaddresource}
+			<button class="add-btn" title="New resource" onclick={onaddresource}><Icon name="plus" size={14} /></button>
+		{/if}
+	</div>
 	<div class="filter">
 		<input placeholder="Filter resources…" bind:value={filter} spellcheck="false" />
 	</div>
@@ -49,6 +57,22 @@
 		flex-direction: column;
 		height: 100%;
 		min-height: 0;
+	}
+	.head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 7px 8px 7px 12px;
+		border-bottom: 1px solid var(--border);
+	}
+	.head-label {
+		font-size: 11px;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--text-faint);
+	}
+	.add-btn {
+		padding: 3px 7px;
 	}
 	.filter {
 		padding: 8px;
