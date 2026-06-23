@@ -9,6 +9,7 @@
 		downloadBackup,
 		ensureRead,
 		ensureReadWrite,
+		exportEntriesJson,
 		getRawValue,
 		getValue,
 		isSupported,
@@ -72,7 +73,12 @@
 	let addOpen = $state(false);
 	let addDefaultResource = $state('');
 
+	// Theme + bulk selection.
+	let theme = $state<'dark' | 'light'>('dark');
+	let bulkSelected = $state<Set<string>>(new Set());
+
 	onMount(() => {
+		theme = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
 		const force = new URLSearchParams(location.search).get('force');
 		if (force === 'brave' || force === 'unsupported') {
 			supported = false;
@@ -118,6 +124,7 @@
 			selectedKey = null;
 			search = '';
 			modifiedKeys = new Set();
+			bulkSelected = new Set();
 		} catch (err) {
 			loadError = `Couldn’t open the database: ${err}`;
 		} finally {
@@ -146,6 +153,7 @@
 			selectedKey = null;
 			search = '';
 			modifiedKeys = new Set();
+			bulkSelected = new Set();
 		} catch (err) {
 			loadError = `Couldn’t load sample data: ${err}`;
 		} finally {
@@ -214,6 +222,7 @@
 		selectedKey = null;
 		detail = null;
 		modifiedKeys = new Set();
+		bulkSelected = new Set();
 		loadError = null;
 	}
 
@@ -295,6 +304,70 @@
 		}
 	}
 
+	function toggleTheme() {
+		theme = theme === 'dark' ? 'light' : 'dark';
+		document.documentElement.dataset.theme = theme;
+		try {
+			localStorage.setItem('kvs.theme', theme);
+		} catch {
+			/* ignore */
+		}
+	}
+
+	function onsaveraw(rawKey: string, bytes: Uint8Array) {
+		if (!session) return;
+		try {
+			putRawValue(session, rawKey, bytes);
+			modifiedKeys = new Set(modifiedKeys).add(rawKey);
+			refreshEntries();
+			detail = getValue(session, rawKey);
+			flash('ok', 'Raw bytes staged — Save to disk to write.');
+		} catch (err) {
+			flash('err', `Edit failed: ${err}`);
+		}
+	}
+
+	function toggleBulk(key: string) {
+		const next = new Set(bulkSelected);
+		if (next.has(key)) next.delete(key);
+		else next.add(key);
+		bulkSelected = next;
+	}
+	function toggleAllFiltered() {
+		const all = filtered.length > 0 && filtered.every((e) => bulkSelected.has(e.rawKey));
+		const next = new Set(bulkSelected);
+		for (const e of filtered) {
+			if (all) next.delete(e.rawKey);
+			else next.add(e.rawKey);
+		}
+		bulkSelected = next;
+	}
+	function clearBulk() {
+		bulkSelected = new Set();
+	}
+	function bulkExport() {
+		if (session && bulkSelected.size) {
+			exportEntriesJson(session, [...bulkSelected]);
+			flash('ok', `Exported ${bulkSelected.size} entr${bulkSelected.size === 1 ? 'y' : 'ies'}.`);
+		}
+	}
+	function bulkDelete() {
+		if (!session || bulkSelected.size === 0) return;
+		const n = bulkSelected.size;
+		if (!confirm(`Delete ${n} selected key${n === 1 ? '' : 's'}?\nApplied on the next Save to disk.`))
+			return;
+		const next = new Set(modifiedKeys);
+		for (const key of bulkSelected) {
+			deleteValue(session, key);
+			next.add(key);
+			if (selectedKey === key) selectedKey = null;
+		}
+		modifiedKeys = next;
+		bulkSelected = new Set();
+		refreshEntries();
+		flash('ok', `Removed ${n} key${n === 1 ? '' : 's'} — Save to disk to apply.`);
+	}
+
 	function onDragEnter(e: DragEvent) {
 		if (!e.dataTransfer) return;
 		dragDepth++;
@@ -360,6 +433,10 @@
 	const readOnly = $derived(!session?.dir);
 	const existingKeys = $derived(new Set(entries.map((e) => e.rawKey)));
 	const resourceNames = $derived(groups.filter((g) => g.type === 'res').map((g) => g.label));
+	const allFilteredSelected = $derived(
+		filtered.length > 0 && filtered.every((e) => bulkSelected.has(e.rawKey))
+	);
+	const someFilteredSelected = $derived(filtered.some((e) => bulkSelected.has(e.rawKey)));
 </script>
 
 {#if supported === null}
@@ -400,6 +477,9 @@
 				<button class="primary" onclick={openFolder}><Icon name="folder" size={14} /> Open folder</button>
 				{#if dev}<button onclick={loadSampleData}>Explore sample</button>{/if}
 			{/if}
+			<button class="icon-btn" title="Toggle light / dark" onclick={toggleTheme}>
+				<Icon name={theme === 'dark' ? 'sun' : 'moon'} size={15} />
+			</button>
 		</header>
 
 		{#if session}
@@ -423,11 +503,49 @@
 					</aside>
 					<Splitter onresize={(dx) => (leftW = clampW(leftW + dx, 160, 520))} />
 					<section class="col entries" style="width:{midW}px">
-						<EntryList entries={filtered} {selectedKey} {modifiedKeys} onselect={(k) => (selectedKey = k)} />
+						<div class="bulkbar">
+							<span
+								class="bulk-check"
+								class:on={allFilteredSelected}
+								class:some={someFilteredSelected && !allFilteredSelected}
+								role="checkbox"
+								aria-checked={allFilteredSelected}
+								tabindex="0"
+								title="Select all shown"
+								onclick={toggleAllFiltered}
+								onkeydown={(e) => {
+									if (e.key === ' ' || e.key === 'Enter') {
+										e.preventDefault();
+										toggleAllFiltered();
+									}
+								}}
+							>
+								{#if allFilteredSelected}<Icon name="check" size={12} />{/if}
+							</span>
+							{#if bulkSelected.size > 0}
+								<span class="bulk-count">{bulkSelected.size} selected</span>
+								<div class="grow"></div>
+								<button class="sm" onclick={bulkExport}><Icon name="download" size={13} /> Export</button>
+								<button class="sm danger" onclick={bulkDelete}><Icon name="trash" size={13} /> Delete</button>
+								<button class="sm" title="Clear selection" onclick={clearBulk}><Icon name="x" size={13} /></button>
+							{:else}
+								<span class="bulk-hint">{filtered.length.toLocaleString()} shown</span>
+							{/if}
+						</div>
+						<div class="entries-list">
+							<EntryList
+								entries={filtered}
+								{selectedKey}
+								{modifiedKeys}
+								selected={bulkSelected}
+								onselect={(k) => (selectedKey = k)}
+								ontoggle={toggleBulk}
+							/>
+						</div>
 					</section>
 					<Splitter onresize={(dx) => (midW = clampW(midW + dx, 220, 820))} />
 					<section class="col detail">
-						<ValueDetail entry={selectedEntry} {detail} {onsave} {ondelete} />
+						<ValueDetail entry={selectedEntry} {detail} {onsave} {onsaveraw} {ondelete} />
 					</section>
 				</div>
 				{#if dragImport}
@@ -568,7 +686,62 @@
 	}
 	.entries {
 		flex: none;
+		display: flex;
+		flex-direction: column;
 		border-right: 1px solid var(--border);
+	}
+	.entries-list {
+		flex: 1;
+		min-height: 0;
+	}
+	.bulkbar {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		flex: none;
+		min-height: 38px;
+		padding: 6px 10px;
+		border-bottom: 1px solid var(--border);
+		background: var(--bg-elev);
+	}
+	.bulk-check {
+		flex: none;
+		width: 16px;
+		height: 16px;
+		border: 1px solid var(--border-strong);
+		border-radius: 4px;
+		display: grid;
+		place-items: center;
+		color: var(--accent-text);
+		cursor: pointer;
+	}
+	.bulk-check.on {
+		background: var(--accent);
+		border-color: var(--accent);
+	}
+	.bulk-check.some {
+		background: var(--accent-dim);
+	}
+	.bulk-count {
+		font-size: 12px;
+		color: var(--text);
+	}
+	.bulk-hint {
+		font-size: 12px;
+		color: var(--text-faint);
+	}
+	.bulkbar button.sm {
+		font-size: 12px;
+		padding: 4px 9px;
+	}
+	.icon-btn {
+		padding: 6px;
+		border-color: transparent;
+		background: transparent;
+	}
+	.icon-btn:hover {
+		border-color: var(--border-strong);
+		background: var(--bg-elev-2);
 	}
 	.detail {
 		flex: 1;

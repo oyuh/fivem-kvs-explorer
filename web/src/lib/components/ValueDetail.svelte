@@ -8,13 +8,15 @@
 		entry: EntryRow | null;
 		detail: GetResult | null;
 		onsave: (rawKey: string, value: unknown, kind: ValueKind) => void;
+		onsaveraw: (rawKey: string, bytes: Uint8Array) => void;
 		ondelete: (rawKey: string) => void;
 	}
-	let { entry, detail, onsave, ondelete }: Props = $props();
+	let { entry, detail, onsave, onsaveraw, ondelete }: Props = $props();
 
 	let draftStr = $state('');
 	let draftBool = $state(false);
 	let jsonText = $state('');
+	let hexDraft = $state('');
 	let localErr = $state<string | null>(null);
 
 	const isJson = $derived(
@@ -28,6 +30,7 @@
 	$effect(() => {
 		localErr = null;
 		const d = detail;
+		hexDraft = d?.hex ?? '';
 		if (d?.type === 'bool') draftBool = Boolean(d.value);
 		else draftStr = d?.value == null ? '' : String(d.value);
 		if (d?.type === 'string' && typeof d.value === 'string' && isJsonString(d.value)) {
@@ -58,6 +61,22 @@
 		if (detail.type === 'bool') return draftBool !== Boolean(detail.value);
 		return draftStr !== (detail.value == null ? '' : String(detail.value));
 	});
+
+	function hexToBytes(h: string): Uint8Array | null {
+		const clean = h.replace(/\s+/g, '');
+		if (clean.length === 0) return new Uint8Array(0);
+		if (clean.length % 2 !== 0 || /[^0-9a-fA-F]/.test(clean)) return null;
+		const out = new Uint8Array(clean.length / 2);
+		for (let i = 0; i < out.length; i++) out[i] = parseInt(clean.slice(i * 2, i * 2 + 2), 16);
+		return out;
+	}
+	const normHex = (h: string) => h.replace(/\s+/g, '').toLowerCase();
+	const hexBytes = $derived(hexToBytes(hexDraft));
+	const hexDirty = $derived(!!detail && normHex(hexDraft) !== normHex(detail.hex));
+
+	function applyHex() {
+		if (entry && hexBytes) onsaveraw(entry.rawKey, hexBytes);
+	}
 
 	function apply() {
 		if (!entry || !detail) return;
@@ -187,8 +206,22 @@
 			{#if localErr}<div class="err">{localErr}</div>{/if}
 
 			<details class="hex">
-				<summary>Raw bytes (hex)</summary>
-				<pre>{detail.hex || '(empty)'}</pre>
+				<summary>Raw bytes (hex) — advanced</summary>
+				<textarea
+					class="hex-edit"
+					rows="3"
+					bind:value={hexDraft}
+					spellcheck="false"
+					placeholder="(empty)"
+				></textarea>
+				<div class="hex-foot">
+					{#if hexBytes}<span class="hex-ok">{hexBytes.length} bytes</span>{:else}<span
+							class="hex-bad">invalid hex</span
+						>{/if}
+					<div class="spacer"></div>
+					<button class="sm" disabled={!hexBytes || !hexDirty} onclick={applyHex}>Save raw bytes</button>
+				</div>
+				<p class="note">Overwrites the value with these exact bytes (stored verbatim).</p>
 			</details>
 		</div>
 
@@ -322,18 +355,31 @@
 		font-size: 12px;
 		color: var(--text-dim);
 	}
-	.hex pre {
+	.hex-edit {
 		font-family: var(--mono);
 		font-size: 11px;
-		color: var(--text-faint);
-		background: var(--bg-input);
-		border: 1px solid var(--border);
-		border-radius: 6px;
-		padding: 10px;
-		overflow-x: auto;
+		margin-top: 8px;
+		resize: vertical;
 		white-space: pre-wrap;
 		word-break: break-all;
-		max-height: 160px;
+	}
+	.hex-foot {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin-top: 6px;
+	}
+	.hex-ok {
+		font-size: 11px;
+		color: var(--text-faint);
+	}
+	.hex-bad {
+		font-size: 11px;
+		color: var(--danger);
+	}
+	button.sm {
+		font-size: 12px;
+		padding: 4px 10px;
 	}
 	footer {
 		display: flex;

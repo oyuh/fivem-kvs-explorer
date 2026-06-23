@@ -190,8 +190,22 @@ export function downloadBackup(s: KvsSession): void {
 	const entries: Record<string, Uint8Array> = {};
 	for (const f of s.original) entries[f.name] = f.bytes;
 	const zipped = zipSync(entries, { level: 6 });
-	triggerDownload(zipped, `kvs-backup-${timestamp()}.zip`);
+	triggerDownload(zipped, `kvs-backup-${timestamp()}.zip`, 'application/zip');
 	s.backedUp = true;
+}
+
+/** Download the given keys (decoded) as a readable JSON file. */
+export function exportEntriesJson(s: KvsSession, rawKeys: string[]): void {
+	const entries = rawKeys.map((rawKey) => {
+		const v = getValue(s, rawKey);
+		return { key: rawKey, type: v?.type ?? 'unknown', value: v?.value ?? null };
+	});
+	const json = JSON.stringify(
+		{ exportedAt: new Date().toISOString(), count: entries.length, entries },
+		null,
+		2
+	);
+	triggerDownload(new TextEncoder().encode(json), `kvs-export-${timestamp()}.json`, 'application/json');
 }
 
 export interface SaveResult {
@@ -222,8 +236,8 @@ export async function saveToDisk(s: KvsSession): Promise<SaveResult> {
 
 // --- helpers ---------------------------------------------------------------
 
-function triggerDownload(bytes: Uint8Array, filename: string): void {
-	const blob = new Blob([bytes as BlobPart], { type: 'application/zip' });
+function triggerDownload(bytes: Uint8Array, filename: string, mime = 'application/octet-stream'): void {
+	const blob = new Blob([bytes as BlobPart], { type: mime });
 	const url = URL.createObjectURL(blob);
 	const a = document.createElement('a');
 	a.href = url;
