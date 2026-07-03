@@ -99,7 +99,7 @@
 			</ol>
 		</div>
 		<ul class="notes">
-			<li>Everything runs locally — nothing is uploaded.</li>
+			<li>Everything runs right here in your browser; nothing gets uploaded.</li>
 			<li>Your real folder stays untouched until you copy it back.</li>
 			<li>A backup zip is offered before your first save.</li>
 		</ul>

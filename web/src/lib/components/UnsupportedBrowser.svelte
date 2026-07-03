@@ -27,14 +27,14 @@
 		{#if isBrave}
 			<h1>Brave needs one setting enabled</h1>
 			<p>
-				Brave ships with the <strong>File System Access API</strong> turned off for privacy. KVS
-				Explorer needs it to read your folder. Turn it on in a few seconds:
+				Brave ships with the <strong>File System Access API</strong> turned off for privacy, and KVS
+				Explorer needs it to read your folder. Flipping it on takes a few seconds:
 			</p>
 			<ol class="steps">
 				<li>
 					Open <code>brave://flags/#file-system-access-api</code>
 					<button class="copy" onclick={copyFlag}>{copied ? 'Copied ✓' : 'Copy'}</button>
-					<span class="dim">(paste it in a new tab — links to <code>brave://</code> can't be clicked)</span>
+					<span class="dim">(paste it in a new tab, since <code>brave://</code> links can't be clicked)</span>
 				</li>
 				<li>Set <strong>“File System Access API”</strong> to <strong>Enabled</strong>.</li>
 				<li>Click <strong>Relaunch</strong>, then reload this page.</li>
@@ -46,7 +46,7 @@
 				KVS Explorer reads and writes your FiveM KVS folder directly on your machine using the
 				<strong>File System Access API</strong>, which only Chromium-based browsers provide.
 			</p>
-			<p class="browsers">Please open this page in one of:</p>
+			<p class="browsers">Open this page in one of these instead:</p>
 			<ul>
 				<li><strong>Google Chrome</strong></li>
 				<li><strong>Microsoft Edge</strong></li>
@@ -54,8 +54,8 @@
 				<li>Brave <span class="dim">(needs a quick flag enabled)</span></li>
 			</ul>
 			<p class="fine">
-				Your data never leaves your computer — the requirement is purely about the browser API needed
-				to read the folder.
+				Your data never leaves your computer either way. This is only about which browsers ship the
+				API needed to read the folder.
 			</p>
 		{/if}
 	</div>

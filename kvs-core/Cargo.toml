@@ -2,7 +2,7 @@
 name = "kvs-core"
 version = "0.1.0"
 edition = "2021"
-description = "Portable core for reading/writing FiveM KVS (a LevelDB database) — usable natively and as wasm."
+description = "Portable core for reading/writing FiveM KVS (a LevelDB database), usable natively and as wasm."
 
 [lib]
 crate-type = ["rlib", "cdylib"]
@@ -11,7 +11,7 @@ crate-type = ["rlib", "cdylib"]
 # Pure-Rust LevelDB, on-disk compatible with C++ LevelDB. default-features = false
 # drops the disk env (fs2/errno) so it builds for wasm32; we always use MemEnv.
 rusty-leveldb = { version = "4", default-features = false }
-# Dynamic msgpack values — FiveM stores KVP values msgpack-encoded.
+# Dynamic msgpack values; FiveM stores KVP values msgpack-encoded.
 rmpv = "1"
 
 [dev-dependencies]

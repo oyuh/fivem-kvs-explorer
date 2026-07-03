@@ -1,4 +1,4 @@
-// Generates a real LevelDB database (via classic-level — native bindings to the
+// Generates a real LevelDB database (via classic-level, native bindings to the
 // C++ LevelDB) shaped like a FiveM KVS store, so the kvs-core compatibility test
 // reads genuine on-disk format + Snappy-compressed tables.
 //
@@ -18,7 +18,7 @@ mkdirSync(outDir, { recursive: true });
 const db = new ClassicLevel(outDir, {
   createIfMissing: true,
   errorIfExists: false,
-  compression: true, // Snappy — what FiveM/LevelDB use by default
+  compression: true, // Snappy, what FiveM/LevelDB use by default
   // Tiny write buffer so even a small fixture flushes memtables to .ldb tables,
   // ensuring the Snappy SST path is present in the committed fixture.
   writeBufferSize: 16 * 1024,
@@ -78,6 +78,6 @@ console.log(`Fixture written to ${outDir}`);
 console.log('Files:', files.join(', '));
 const tables = files.filter((f) => f.endsWith('.ldb') || f.endsWith('.sst'));
 if (tables.length === 0) {
-  console.error('WARNING: no .ldb/.sst tables produced — Snappy path will be untested.');
+  console.error('WARNING: no .ldb/.sst tables produced, so the Snappy path will be untested.');
   process.exit(1);
 }

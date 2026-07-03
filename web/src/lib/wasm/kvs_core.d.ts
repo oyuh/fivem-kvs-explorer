@@ -17,8 +17,8 @@ export class KvsDb {
     entries(): any;
     /**
      * Diff the current (mutated) file set against what was originally loaded.
-     * Returns `{ changed: [{name, bytes}], deleted: [name] }` — exactly the
-     * files to write to / remove from the folder on disk.
+     * Returns `{ changed: [{name, bytes}], deleted: [name] }`, which is exactly
+     * the set of files to write to / remove from the folder on disk.
      */
     export_changes(): any;
     /**

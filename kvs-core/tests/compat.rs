@@ -1,7 +1,7 @@
 //! Phase 0 compatibility spike.
 //!
 //! Proves that `rusty-leveldb` (pure Rust) can read a LevelDB database produced
-//! by the *C++* implementation — via `classic-level`, which is a native binding
+//! by the *C++* implementation, via `classic-level`, which is a native binding
 //! to real LevelDB, so the fixture exercises the genuine on-disk format and
 //! Snappy block compression. This is the gate for the whole project: if this
 //! passes, the browser (wasm) read path is sound.
@@ -37,7 +37,7 @@ fn reads_fivem_style_leveldb() {
     let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/sample-kvs");
     assert!(
         dir.exists(),
-        "fixture missing — run `npm --prefix tools/gen-fixture install && node tools/gen-fixture/gen.mjs`"
+        "fixture missing; run `npm --prefix tools/gen-fixture install && node tools/gen-fixture/gen.mjs`"
     );
 
     let files = load_dir(&dir);
@@ -83,7 +83,7 @@ fn reads_fivem_style_leveldb() {
     assert!(
         snap.iter()
             .any(|f| f.name.ends_with(".ldb") || f.name.ends_with(".sst")),
-        "no .ldb/.sst table in fixture — Snappy path not exercised; files: {:?}",
+        "no .ldb/.sst table in fixture, so the Snappy path is not exercised; files: {:?}",
         snap.iter().map(|f| &f.name).collect::<Vec<_>>()
     );
 }
@@ -115,7 +115,7 @@ fn write_add_delete_roundtrip() {
     let changed = snapshot_files(&env).expect("snapshot");
     assert!(changed.iter().any(|f| f.name == "CURRENT"));
 
-    // Reopen from the snapshot — simulates writing to disk and reloading.
+    // Reopen from the snapshot; this simulates writing to disk and reloading.
     let (mut db2, _env2) = open_from_files(&changed).expect("reopen mutated db");
 
     let color = db2.get(b"res:my_hud:color").expect("edited value present");

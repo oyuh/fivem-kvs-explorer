@@ -107,7 +107,7 @@
 		try {
 			if (!(await ensureReadWrite(dir))) {
 				loadError =
-					'Read & write permission was denied. If you picked the folder from inside AppData, copy it to your Desktop first — browsers block AppData.';
+					'Read & write permission was denied. If that folder lives inside AppData, copy it to your Desktop first (browsers refuse to touch AppData).';
 				return;
 			}
 			const files = await readFolder(dir);
@@ -177,7 +177,7 @@
 			modifiedKeys = new Set(modifiedKeys).add(rawKey);
 			refreshEntries();
 			detail = getValue(session, rawKey);
-			flash('ok', 'Change staged — Save to disk to write it.');
+			flash('ok', 'Change staged. Save to disk when you\'re ready.');
 		} catch (err) {
 			flash('err', `Edit failed: ${err}`);
 		}
@@ -190,7 +190,7 @@
 			modifiedKeys = new Set(modifiedKeys).add(rawKey);
 			if (selectedKey === rawKey) selectedKey = null;
 			refreshEntries();
-			flash('ok', 'Key removed — Save to disk to apply.');
+			flash('ok', 'Key removed. It goes away for real on the next Save to disk.');
 		} catch (err) {
 			flash('err', `Delete failed: ${err}`);
 		}
@@ -270,7 +270,7 @@
 		modifiedKeys = new Set([...modifiedKeys, ...imported]);
 		refreshEntries();
 		closeImport();
-		flash('ok', `Imported ${imported.length} key${imported.length === 1 ? '' : 's'} — Save to disk to write them.`);
+		flash('ok', `Imported ${imported.length} key${imported.length === 1 ? '' : 's'}. Save to disk to write them.`);
 	}
 
 	function closeImport() {
@@ -298,7 +298,7 @@
 			search = '';
 			selectedKey = rawKey;
 			addOpen = false;
-			flash('ok', 'Entry added — Save to disk to write it.');
+			flash('ok', 'Entry added. Save to disk to write it.');
 		} catch (err) {
 			flash('err', `Add failed: ${err}`);
 		}
@@ -321,7 +321,7 @@
 			modifiedKeys = new Set(modifiedKeys).add(rawKey);
 			refreshEntries();
 			detail = getValue(session, rawKey);
-			flash('ok', 'Raw bytes staged — Save to disk to write.');
+			flash('ok', 'Raw bytes staged. Save to disk to write them.');
 		} catch (err) {
 			flash('err', `Edit failed: ${err}`);
 		}
@@ -354,7 +354,7 @@
 	function bulkDelete() {
 		if (!session || bulkSelected.size === 0) return;
 		const n = bulkSelected.size;
-		if (!confirm(`Delete ${n} selected key${n === 1 ? '' : 's'}?\nApplied on the next Save to disk.`))
+		if (!confirm(`Delete ${n} selected key${n === 1 ? '' : 's'}?\nThis takes effect on the next Save to disk.`))
 			return;
 		const next = new Set(modifiedKeys);
 		for (const key of bulkSelected) {
@@ -365,7 +365,7 @@
 		modifiedKeys = next;
 		bulkSelected = new Set();
 		refreshEntries();
-		flash('ok', `Removed ${n} key${n === 1 ? '' : 's'} — Save to disk to apply.`);
+		flash('ok', `Removed ${n} key${n === 1 ? '' : 's'}. Save to disk to make it stick.`);
 	}
 
 	function onDragEnter(e: DragEvent) {

@@ -138,7 +138,7 @@
 			</div>
 
 			{#if conflict}
-				<div class="warn"><Icon name="alert" size={14} /> This key already exists — adding overwrites it.</div>
+				<div class="warn"><Icon name="alert" size={14} /> This key already exists, so adding will overwrite it.</div>
 			{/if}
 		</div>
 

@@ -2,7 +2,7 @@
 @import '@fontsource-variable/geist-mono/index.css';
 
 :root {
-	/* Grayscale palette — no chroma anywhere in the chrome. */
+	/* Grayscale palette: no chroma anywhere in the chrome. */
 	--bg: #0c0d0f;
 	--bg-elev: #141518;
 	--bg-elev-2: #1b1d21;
@@ -12,7 +12,7 @@
 	--text: #e9eaed;
 	--text-dim: #9a9da4;
 	--text-faint: #686b72;
-	--accent: #d7dade; /* light gray — replaces the old blue */
+	--accent: #d7dade; /* light gray, replaces the old blue */
 	--accent-dim: #2b2e34;
 	--accent-text: #0c0d0f; /* text on a light accent fill */
 
@@ -22,7 +22,7 @@
 	--ok: #a9b0a9;
 	--warn: #cdbf9c;
 
-	/* JSON syntax highlighting — monochrome, differentiated by weight/brightness. */
+	/* JSON syntax highlighting: monochrome, differentiated by weight/brightness. */
 	--tok-key: #eceef1;
 	--tok-str: #b9bdc5;
 	--tok-num: #d2d5db;

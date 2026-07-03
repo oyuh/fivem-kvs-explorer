@@ -252,8 +252,8 @@ impl KvsDb {
     }
 
     /// Diff the current (mutated) file set against what was originally loaded.
-    /// Returns `{ changed: [{name, bytes}], deleted: [name] }` — exactly the
-    /// files to write to / remove from the folder on disk.
+    /// Returns `{ changed: [{name, bytes}], deleted: [name] }`, which is exactly
+    /// the set of files to write to / remove from the folder on disk.
     pub fn export_changes(&mut self) -> Result<JsValue, JsValue> {
         self.db.flush().map_err(js_err)?;
         let snap = snapshot_files(&self.env).map_err(js_err)?;

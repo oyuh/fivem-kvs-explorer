@@ -100,8 +100,8 @@
 
 		{#if conflictCount > 0 && !overwrite}
 			<div class="conflict-note">
-				{conflictCount} key{conflictCount === 1 ? '' : 's'} already exist and are skipped — enable
-				“Overwrite existing” to include them.
+				{conflictCount} key{conflictCount === 1 ? '' : 's'} already exist here, so they're skipped.
+				Tick “Overwrite existing” if you want them anyway.
 			</div>
 		{/if}
 

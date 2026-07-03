@@ -1,25 +1,25 @@
 # KVS Explorer
 
-A client-side explorer/editor for the **FiveM KVS** store. The KVS is a [LevelDB] database;
-this app reads and writes it entirely in the browser via a Rust core compiled to
-WebAssembly, with a SvelteKit front-end. No server, no upload — the bytes never leave the
-machine.
-
----
+A browser-based explorer and editor for the FiveM KVS store. Under the hood the KVS is
+just a [LevelDB] database, so this app opens it with a Rust core compiled to WebAssembly
+and a SvelteKit UI on top. There's no server and no upload step: the bytes never leave
+your machine.
 
 ## The data format
 
-FiveM's resource Key-Value Store (`SetResourceKvp*` / `GetResourceKvp*`) is a **LevelDB**
-database. On the client it lives at `%appdata%\CitizenFX\kvs` (FiveM mounts it at the
-virtual path `fxd:/kvs/`, or `fxd:/kvs_cl2/` on CL2). The folder is a standard LevelDB
-directory: `CURRENT`, `MANIFEST-*`, `*.ldb` tables, `*.log` (WAL), `LOG`, `LOCK`.
+FiveM's resource Key-Value Store (the `SetResourceKvp*` / `GetResourceKvp*` natives) is a
+LevelDB database. On the client it lives at `%appdata%\CitizenFX\kvs` (FiveM mounts it at
+the virtual path `fxd:/kvs/`, or `fxd:/kvs_cl2/` on CL2). The folder is a normal LevelDB
+directory: `CURRENT`, `MANIFEST-*`, `*.ldb` tables, `*.log` (the WAL), `LOG`, `LOCK`.
 
-- **Key namespacing** — resource entries are stored as `res:<resource>:<key>`; resource
-  version metadata as `rv:<…>`. Grouping by resource is a prefix split.
-- **Value encoding** — values are **msgpack** (the native packs the Lua value:
-  `SetResourceKvp` → string, `SetResourceKvpInt` → int, `SetResourceKvpFloat` → 32-bit
-  float). Resources that store tables typically `json.encode` them into a string value.
-- **Compression** — LevelDB's default Snappy block compression.
+A few things worth knowing about what's inside:
+
+- Keys are namespaced. Resource entries are stored as `res:<resource>:<key>`, and
+  resource version metadata as `rv:<...>`. Grouping by resource is just a prefix split.
+- Values are msgpack. The native packs the Lua value directly: `SetResourceKvp` gives you
+  a string, `SetResourceKvpInt` an int, `SetResourceKvpFloat` a 32-bit float. Resources
+  that store tables usually `json.encode` them into a string value first.
+- Blocks are compressed with Snappy, LevelDB's default.
 
 ## Architecture
 
@@ -43,71 +43,74 @@ directory: `CURRENT`, `MANIFEST-*`, `*.ldb` tables, `*.log` (WAL), `LOG`, `LOCK`
 
 ### `kvs-core` (Rust)
 
-`crate-type = ["rlib", "cdylib"]`. Two layers:
+Built with `crate-type = ["rlib", "cdylib"]`, split into two layers:
 
-- **`src/lib.rs`** — platform-agnostic core, also exercised by native `cargo test`:
-  - `open_from_files(&[DbFile]) -> (DB, SharedEnv)` writes the folder's bytes into a
-    `rusty_leveldb::MemEnv` at `db/<name>` and `DB::open`s over it (`create_if_missing =
-    false`). `SharedEnv = Rc<Box<dyn Env>>` is shared between our file I/O and the DB so
-    leveldb's mutations are visible when we read the files back.
-  - `for_each_entry` iterates via the `LdbIterator` `advance()`/`current()` protocol.
-  - `parse_key` splits the `res:`/`rv:` namespace; `decode_value`/`encode_value` wrap
-    `rmpv`; `value_type`/`value_preview`/`looks_like_json` summarize values.
-  - `snapshot_files(&SharedEnv)` reads every file currently in the MemEnv (skipping `LOCK`).
-- **`src/wasm.rs`** (`#[cfg(target_arch = "wasm32")]`) — the `wasm-bindgen` boundary. A
-  `KvsDb` object holds the open `DB`, the `SharedEnv`, and a `HashMap<name, content-hash>`
-  of the files as originally loaded (for diffing). Marshalling is manual `js_sys`
-  (`Uint8Array` in/out, object shaping) plus `serde-wasm-bindgen` for the lightweight row
-  list.
+`src/lib.rs` is the platform-agnostic core, which native `cargo test` also exercises:
 
-`KvsDb` surface:
+- `open_from_files(&[DbFile]) -> (DB, SharedEnv)` writes the folder's bytes into a
+  `rusty_leveldb::MemEnv` at `db/<name>` and runs `DB::open` over it with
+  `create_if_missing = false`. `SharedEnv` is an `Rc<Box<dyn Env>>` shared between our
+  file I/O and the DB, so leveldb's mutations are visible when we read the files back.
+- `for_each_entry` iterates via the `LdbIterator` `advance()`/`current()` protocol.
+- `parse_key` splits the `res:`/`rv:` namespace. `decode_value` and `encode_value` wrap
+  `rmpv`, and `value_type`/`value_preview`/`looks_like_json` summarize values for the UI.
+- `snapshot_files(&SharedEnv)` reads every file currently in the MemEnv (skipping `LOCK`).
+
+`src/wasm.rs` (gated on `#[cfg(target_arch = "wasm32")]`) is the `wasm-bindgen` boundary.
+A `KvsDb` object holds the open `DB`, the `SharedEnv`, and a `HashMap<name, content-hash>`
+of the files as originally loaded, which is what diffing compares against later.
+Marshalling is manual `js_sys` (`Uint8Array` in and out, object shaping) plus
+`serde-wasm-bindgen` for the lightweight row list.
+
+The `KvsDb` surface:
 
 | method | purpose |
 | --- | --- |
 | `new KvsDb(files)` | open from `[{name, bytes}]` |
-| `entries()` | lightweight rows `{rawKey, namespace, resource, key, valueType, preview, …}` |
+| `entries()` | lightweight rows `{rawKey, namespace, resource, key, valueType, preview, ...}` |
 | `get(rawKey)` | full decode `{type, value, hex, byteLen}` |
 | `get_raw(rawKey)` | exact stored bytes (verbatim copy / import) |
-| `put(rawKey, value, kind)` | `kind ∈ {string,int,float,bool,raw}`; re-encodes msgpack (`raw` = bytes verbatim) |
+| `put(rawKey, value, kind)` | `kind` is one of `string`, `int`, `float`, `bool`, `raw`; re-encodes msgpack (`raw` stores bytes verbatim) |
 | `delete(rawKey)` | tombstone |
-| `export_changes()` | diff MemEnv vs load snapshot → `{changed:[{name,bytes}], deleted:[name]}` |
+| `export_changes()` | diff MemEnv vs load snapshot, returns `{changed:[{name,bytes}], deleted:[name]}` |
 | `mark_saved()` | reset the diff baseline after a successful disk write |
 
 ### Write model
 
-Edits never hand-craft SST/log files. `put`/`delete` go through `rusty-leveldb`, which
-appends to the WAL and may compact, producing a **valid new file set inside the MemEnv**.
-On save, `export_changes()` content-hashes the current MemEnv files against the load-time
-snapshot and returns only the deltas; `kvs.ts` writes changed files via
-`FileSystemFileHandle.createWritable()` and `removeEntry()`s deletions. Because leveldb
-generated the files, the on-disk DB stays consistent. A backup zip (`fflate`) of the
-original bytes is downloaded before the first write.
+Edits never hand-craft SST or log files. `put` and `delete` go through `rusty-leveldb`,
+which appends to the WAL and may compact, so what you end up with is a valid new file set
+inside the MemEnv. On save, `export_changes()` content-hashes the current MemEnv files
+against the load-time snapshot and returns only the deltas. `kvs.ts` then writes changed
+files via `FileSystemFileHandle.createWritable()` and calls `removeEntry()` for deletions.
+Because leveldb itself generated the files, the on-disk DB stays consistent. Before the
+first write, a backup zip of the original bytes (built with `fflate`) is downloaded.
 
 ### `web` (SvelteKit)
 
-Pure SPA: `ssr = false`, `adapter-static` with an `index.html` fallback — builds to static
-files. `lib/kvs.ts` is the only place that touches the File System Access API:
-`getAsFileSystemHandle()` (drag) / `showDirectoryPicker({mode})` (button), `dir.entries()`
-to read bytes, `createWritable()`/`removeEntry()` to write back. The wasm module
-(`--target web`) is initialized lazily. The UI virtualizes the key list and lazily fully
-decodes a value only on selection.
+A pure SPA: `ssr = false` and `adapter-static` with an `index.html` fallback, so it builds
+to plain static files. `lib/kvs.ts` is the only place that touches the File System Access
+API: `getAsFileSystemHandle()` for drag and drop, `showDirectoryPicker({mode})` for the
+button, `dir.entries()` to read bytes, and `createWritable()`/`removeEntry()` to write
+back. The wasm module (built with `--target web`) is initialized lazily. The UI
+virtualizes the key list and only fully decodes a value when you select it.
 
 ## Browser constraints (hard limits, not bugs)
 
-- **File System Access API ⇒ Chromium only.** Firefox/Safari don't implement it. **Brave**
-  ships it disabled behind `brave://flags/#file-system-access-api`.
-- **Chromium blocklists AppData.** `%APPDATA%` and `%LOCALAPPDATA%` (and *all* descendants)
-  are `kBlockAllChildren` in Chromium's File System Access blocklist, so the kvs folder
-  **cannot be opened in place**. The home directory is `kDontBlockChildren`, so copy the
-  folder to e.g. the Desktop, edit, and copy it back. The app surfaces this in the UI.
-- **Secure context** required (`localhost` or HTTPS).
+- The File System Access API means Chromium only. Firefox and Safari don't implement it,
+  and Brave ships it disabled behind `brave://flags/#file-system-access-api`.
+- Chromium blocklists AppData. `%APPDATA%` and `%LOCALAPPDATA%` (and all of their
+  descendants) are `kBlockAllChildren` in Chromium's File System Access blocklist, so the
+  kvs folder can't be opened in place. The home directory is `kDontBlockChildren`, so the
+  workflow is: copy the folder somewhere like the Desktop, edit it, copy it back. The app
+  walks you through this in the UI.
+- A secure context is required (`localhost` or HTTPS).
 
 ## Requirements
 
-- A Chromium browser (Chrome / Edge / Brave-with-flag / Opera).
-- [Bun] (package manager + runner).
-- Rust **stable ≥ 1.87** (rusty-leveldb 4.x uses `is_multiple_of`), the
-  `wasm32-unknown-unknown` target, and [wasm-pack] — only needed to rebuild the wasm core.
+- A Chromium browser (Chrome, Edge, Brave with the flag, Opera).
+- [Bun] as the package manager and script runner.
+- To rebuild the wasm core only: Rust stable 1.87 or newer (rusty-leveldb 4.x uses
+  `is_multiple_of`), the `wasm32-unknown-unknown` target, and [wasm-pack].
 
 ## Commands (from the repo root)
 
@@ -115,7 +118,7 @@ decodes a value only on selection.
 | --- | --- |
 | `bun run setup` | install web dependencies |
 | `bun run dev` | build the wasm core (debug) + start Vite |
-| `bun run build` | build the release wasm + static site → `web/build/` |
+| `bun run build` | build the release wasm + static site into `web/build/` |
 | `bun run check` | `svelte-check` |
 | `bun run test` | `cargo test` (native) + the wasm-binding smoke test |
 | `bun run wasm` / `wasm:dev` | rebuild just the wasm core into `web/src/lib/wasm` |
@@ -127,33 +130,34 @@ bun run setup && bun run dev   # then open the localhost URL in Chrome/Edge
 
 ## Testing
 
-- **`kvs-core/tests/compat.rs`** — the cross-implementation gate. The fixture is a real
-  LevelDB produced by **C++ LevelDB** (via Node `classic-level`), so it exercises the
-  genuine on-disk format and Snappy-compressed `.ldb` tables. Asserts: pure-Rust
-  `rusty-leveldb` reads it, `res:`/`rv:` parsing, msgpack type round-trips, and a
-  put/add/delete → `snapshot_files` → reopen round-trip.
-- **`tools/wasm-smoke.cjs`** — runs the actual `KvsDb` bindings (nodejs-target wasm, same
-  code the browser runs) against the fixture: `entries()` shape, typed `get()`, `put`,
-  `delete`, `export_changes()` reload round-trip, and the `get_raw` → `put 'raw'` import
-  path.
-- **`tools/gen-fixture/`** — seeds the fixture with `classic-level` + `@msgpack/msgpack`
+- `kvs-core/tests/compat.rs` is the cross-implementation gate. The fixture is a real
+  LevelDB produced by C++ LevelDB (via Node's `classic-level`), so it exercises the
+  genuine on-disk format and Snappy-compressed `.ldb` tables. It asserts that pure-Rust
+  `rusty-leveldb` can read it, that `res:`/`rv:` parsing works, that msgpack types
+  round-trip, and that a put/add/delete followed by `snapshot_files` and a reopen also
+  round-trips.
+- `tools/wasm-smoke.cjs` runs the actual `KvsDb` bindings (nodejs-target wasm, same code
+  the browser runs) against the fixture: the `entries()` shape, typed `get()`, `put`,
+  `delete`, the `export_changes()` reload round-trip, and the `get_raw` into `put 'raw'`
+  import path.
+- `tools/gen-fixture/` seeds the fixture with `classic-level` + `@msgpack/msgpack`
   (string/int/float plus JSON-as-string values, sized to force Snappy table flushes).
 
 ## Deploy (Vercel)
 
-Vercel's build image has no Rust toolchain, so the compiled wasm core is **committed** at
-`web/src/lib/wasm/`; Vercel builds only the Rust-free SvelteKit app. [vercel.json](vercel.json)
-sets `installCommand`/`buildCommand`/`outputDirectory`.
+Vercel's build image has no Rust toolchain, so the compiled wasm core is committed at
+`web/src/lib/wasm/` and Vercel builds only the Rust-free SvelteKit app. [vercel.json](vercel.json)
+sets `installCommand`, `buildCommand`, and `outputDirectory`.
 
 1. Import the repo at [vercel.com/new](https://vercel.com/new).
-2. Leave **Root Directory** `./` and **Framework Preset** Other.
-3. Deploy. Every push to `master` auto-deploys; the dev-only sample data is stripped from
-   production builds.
+2. Leave Root Directory as `./` and Framework Preset as Other.
+3. Deploy. Every push to `master` auto-deploys, and the dev-only sample data is stripped
+   from production builds.
 
 CI ([.github/workflows/deploy.yml](.github/workflows/deploy.yml)) rebuilds the wasm and runs
-`bun run build` + `bun run check` + `cargo test` on every push/PR.
+`bun run build` + `bun run check` + `cargo test` on every push and PR.
 
-> **After changing `kvs-core`**, rebuild and commit the wasm so Vercel ships it:
+> Heads up: after changing `kvs-core`, rebuild and commit the wasm so Vercel ships it:
 > `bun run wasm && git add web/src/lib/wasm && git commit`.
 
 ## Project layout
@@ -167,7 +171,7 @@ web/
   src/lib/kvs.ts          File System Access ⇄ wasm bridge
   src/lib/json.ts         no-dep JSON tokenizer/highlighter/validator
   src/lib/components/     ResourceTree, EntryList, ValueDetail, JsonEditor,
-                          ImportDialog, AddEntryDialog, Splitter, Icon, …
+                          ImportDialog, AddEntryDialog, Splitter, Icon, ...
   src/lib/wasm/           committed wasm-pack output (rebuilt by `bun run wasm`)
   src/routes/+page.svelte app shell + state
 tools/                    fixture generator + wasm smoke test

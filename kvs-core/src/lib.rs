@@ -3,8 +3,8 @@
 //! A FiveM "KVS folder" is a [LevelDB] database (FiveM opens it at the virtual
 //! path `fxd:/kvs/`, which maps to `%appdata%/CitizenFX/kvs` on disk). Keys are
 //! namespaced:
-//!   * `res:<resource>:<key>` — a resource KVP entry (`SetResourceKvp*`)
-//!   * `rv:<...>`             — resource-version metadata
+//!   * `res:<resource>:<key>` is a resource KVP entry (`SetResourceKvp*`)
+//!   * `rv:<...>`             is resource-version metadata
 //! Values are msgpack-encoded, so their type (string / int / float) is
 //! self-describing.
 //!
@@ -119,9 +119,9 @@ pub fn for_each_entry(db: &mut DB, mut f: impl FnMut(&[u8], &[u8])) -> Result<()
 /// The FiveM namespace a raw LevelDB key belongs to.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum KeyNamespace {
-    /// `res:<resource>:<key>` — a resource KVP entry.
+    /// `res:<resource>:<key>`: a resource KVP entry.
     Resource,
-    /// `rv:<...>` — resource-version metadata.
+    /// `rv:<...>`: resource-version metadata.
     ResourceVersion,
     /// Anything that doesn't match a known prefix.
     Other,

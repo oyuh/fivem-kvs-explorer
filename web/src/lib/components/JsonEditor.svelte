@@ -36,7 +36,7 @@
 		try {
 			text = formatJson(text);
 		} catch {
-			/* invalid — leave as typed */
+			/* invalid, leave as typed */
 		}
 	}
 </script>

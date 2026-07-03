@@ -51,7 +51,7 @@ export async function pickDirectory(): Promise<FileSystemDirectoryHandle> {
 	return directoryPicker()({ mode: 'readwrite', id: 'fivem-kvs' });
 }
 
-/** Pick a second folder to import from — read-only. */
+/** Pick a second folder to import from (read-only). */
 export async function pickImportDirectory(): Promise<FileSystemDirectoryHandle> {
 	return directoryPicker()({ mode: 'read', id: 'fivem-kvs-import' });
 }
@@ -89,7 +89,7 @@ export async function ensureReadWrite(dir: FileSystemDirectoryHandle): Promise<b
 	return (await h.requestPermission?.(opts)) === 'granted';
 }
 
-/** Read-only permission — enough for an import source we never write to. */
+/** Read-only permission, enough for an import source we never write to. */
 export async function ensureRead(dir: FileSystemDirectoryHandle): Promise<boolean> {
 	const h = dir as unknown as PermHandle;
 	const opts = { mode: 'read' };
@@ -173,7 +173,7 @@ export function getRawValue(s: KvsSession, rawKey: string): Uint8Array | null {
 	return s.db.get_raw(rawKey) as Uint8Array | null;
 }
 
-/** Store value bytes verbatim (no re-encoding) — the import path. */
+/** Store value bytes verbatim (no re-encoding); this is the import path. */
 export function putRawValue(s: KvsSession, rawKey: string, bytes: Uint8Array): void {
 	s.db.put(rawKey, bytes, 'raw');
 }
@@ -214,7 +214,7 @@ export interface SaveResult {
 }
 
 export async function saveToDisk(s: KvsSession): Promise<SaveResult> {
-	if (!s.dir) throw new Error('This is read-only sample data — open your own folder to save changes.');
+	if (!s.dir) throw new Error('This is read-only sample data. Open your own folder to save changes.');
 	const changes = s.db.export_changes() as Changes;
 	for (const { name, bytes } of changes.changed) {
 		const fh = await s.dir.getFileHandle(name, { create: true });

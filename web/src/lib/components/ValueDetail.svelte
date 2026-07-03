@@ -83,7 +83,7 @@
 		if (isJson) {
 			const r = tryParseJson(jsonText);
 			if (!r.ok) {
-				localErr = 'Invalid JSON — fix it before saving.';
+				localErr = "That JSON doesn't parse. Fix it before saving.";
 				return;
 			}
 			localErr = null;
@@ -142,7 +142,7 @@
 	}
 
 	function confirmDelete() {
-		if (entry && confirm(`Delete "${entry.rawKey}"?\nApplied on the next Save to disk.`)) {
+		if (entry && confirm(`Delete "${entry.rawKey}"?\nThis takes effect on the next Save to disk.`)) {
 			ondelete(entry.rawKey);
 		}
 	}
@@ -187,7 +187,7 @@
 				<label for="v">Value (integer)</label>
 				<input id="v" type="number" step="1" bind:value={draftStr} />
 			{:else if detail.type === 'float'}
-				<label for="v">Value (float — stored as 32-bit)</label>
+				<label for="v">Value (float, stored as 32-bit)</label>
 				<input id="v" type="number" step="any" bind:value={draftStr} />
 			{:else if detail.type === 'bool'}
 				<label class="checkbox">
@@ -197,7 +197,7 @@
 			{:else if structured}
 				<div class="lbl"><Icon name="braces" size={13} /> Value ({detail.type})</div>
 				<pre class="readonly"><code>{@html structuredHtml}</code></pre>
-				<p class="note">Editing {detail.type} values isn't supported yet — view only.</p>
+				<p class="note">Editing {detail.type} values isn't supported yet, so this one's view-only.</p>
 			{:else}
 				<div class="lbl">Value ({detail.type})</div>
 				<pre class="readonly">{safePretty(detail.value)}</pre>
@@ -206,7 +206,7 @@
 			{#if localErr}<div class="err">{localErr}</div>{/if}
 
 			<details class="hex">
-				<summary>Raw bytes (hex) — advanced</summary>
+				<summary>Raw bytes (hex, for the adventurous)</summary>
 				<textarea
 					class="hex-edit"
 					rows="3"

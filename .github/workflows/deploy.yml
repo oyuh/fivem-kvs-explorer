@@ -2,7 +2,7 @@ name: CI
 
 # Builds the wasm core + static site and runs the tests on every push/PR.
 # Deployment is handled by Vercel's Git integration (it builds only the
-# Rust-free web app from the committed wasm) — see README.
+# Rust-free web app from the committed wasm); see the README.
 
 on:
   push:
