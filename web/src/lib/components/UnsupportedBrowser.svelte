@@ -5,8 +5,9 @@
 	// it ships the API but disabled behind a flag, so we give it tailored steps.
 	interface Props {
 		isBrave?: boolean;
+		onsample?: () => void;
 	}
-	let { isBrave = false }: Props = $props();
+	let { isBrave = false, onsample }: Props = $props();
 
 	let copied = $state(false);
 	async function copyFlag() {
@@ -21,7 +22,7 @@
 </script>
 
 <div class="wrap">
-	<div class="card">
+	<div class="content">
 		<div class="icon"><Icon name={isBrave ? 'settings' : 'alert'} size={32} strokeWidth={1.5} /></div>
 
 		{#if isBrave}
@@ -58,6 +59,16 @@
 				the API that reads the folder.
 			</p>
 		{/if}
+
+		{#if onsample}
+			<div class="demo">
+				<button class="primary" onclick={onsample}>Try the demo</button>
+				<p class="fine">
+					The demo reads a bundled sample store over HTTP, so it runs in this browser as it is.
+					Only your own folder needs the API.
+				</p>
+			</div>
+		{/if}
 	</div>
 </div>
 
@@ -68,13 +79,17 @@
 		min-height: 100vh;
 		padding: 24px;
 	}
-	.card {
+	.content {
 		max-width: 480px;
-		background: var(--bg-elev);
-		border: 1px solid var(--border);
-		border-radius: 5px;
-		padding: 32px;
 		text-align: center;
+	}
+	.demo {
+		margin-top: 28px;
+		padding-top: 24px;
+		border-top: 1px solid var(--border);
+	}
+	.demo .fine {
+		margin-top: 12px;
 	}
 	.icon {
 		display: flex;

@@ -366,7 +366,8 @@
 	}
 
 	function onDragEnter(e: DragEvent) {
-		if (!e.dataTransfer) return;
+		// Without the API there is nothing to import from, so skip the drop overlay.
+		if (!e.dataTransfer || !supported) return;
 		dragDepth++;
 		dragImport = true;
 	}
@@ -438,8 +439,8 @@
 
 {#if supported === null}
 	<div class="boot"></div>
-{:else if !supported}
-	<UnsupportedBrowser {isBrave} />
+{:else if !supported && !session}
+	<UnsupportedBrowser {isBrave} onsample={loadSampleData} />
 {:else}
 	<div class="app">
 		<header class="toolbar">
@@ -458,7 +459,9 @@
 					<span class="modified">{modifiedKeys.size} unsaved</span>
 				{/if}
 				<button onclick={openAddKey}><Icon name="plus" size={14} /> Add key</button>
-				<button onclick={openImport}><Icon name="import" size={14} /> Import…</button>
+				{#if supported}
+					<button onclick={openImport}><Icon name="import" size={14} /> Import…</button>
+				{/if}
 				<button
 					class="primary"
 					disabled={readOnly || modifiedKeys.size === 0 || saving}

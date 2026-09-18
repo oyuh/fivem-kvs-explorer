@@ -100,7 +100,8 @@ list, and only fully decodes a value when you select it.
 The three limits below come from the browser, not from this app:
 
 - The File System Access API means Chromium only. Firefox and Safari don't implement it,
-  and Brave ships it disabled behind `brave://flags/#file-system-access-api`.
+  and Brave ships it disabled behind `brave://flags/#file-system-access-api`. The demo
+  still runs in those browsers, since it fetches its files over HTTP.
 - Chromium blocklists AppData. `%APPDATA%` and `%LOCALAPPDATA%` (and all of their
   descendants) are `kBlockAllChildren` in Chromium's File System Access blocklist, so you
   can't open the kvs folder in place. The home directory is `kDontBlockChildren`, so the
