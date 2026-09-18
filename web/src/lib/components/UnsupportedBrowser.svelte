@@ -27,35 +27,35 @@
 		{#if isBrave}
 			<h1>Brave needs one setting enabled</h1>
 			<p>
-				Brave ships with the <strong>File System Access API</strong> turned off for privacy, and KVS
-				Explorer needs it to read your folder. Flipping it on takes a few seconds:
+				Brave ships the <strong>File System Access API</strong> turned off for privacy, and KVS
+				Explorer needs it to read your folder. Three steps turn it back on.
 			</p>
 			<ol class="steps">
 				<li>
 					Open <code>brave://flags/#file-system-access-api</code>
-					<button class="copy" onclick={copyFlag}>{copied ? 'Copied ✓' : 'Copy'}</button>
-					<span class="dim">(paste it in a new tab, since <code>brave://</code> links can't be clicked)</span>
+					<button class="copy" onclick={copyFlag}>{copied ? 'Copied' : 'Copy'}</button>
+					<span class="dim">(paste it into a new tab; <code>brave://</code> links aren't clickable)</span>
 				</li>
-				<li>Set <strong>“File System Access API”</strong> to <strong>Enabled</strong>.</li>
+				<li>Set <strong>"File System Access API"</strong> to <strong>Enabled</strong>.</li>
 				<li>Click <strong>Relaunch</strong>, then reload this page.</li>
 			</ol>
-			<p class="fine">Prefer not to change Brave settings? Chrome or Edge work out of the box.</p>
+			<p class="fine">Chrome and Edge read the folder without any setting changes.</p>
 		{:else}
 			<h1>This browser isn't supported</h1>
 			<p>
-				KVS Explorer reads and writes your FiveM KVS folder directly on your machine using the
-				<strong>File System Access API</strong>, which only Chromium-based browsers provide.
+				KVS Explorer reads and writes your FiveM KVS folder on your own machine through the
+				<strong>File System Access API</strong>. Only Chromium browsers ship that API.
 			</p>
 			<p class="browsers">Open this page in one of these instead:</p>
 			<ul>
 				<li><strong>Google Chrome</strong></li>
 				<li><strong>Microsoft Edge</strong></li>
 				<li>Opera</li>
-				<li>Brave <span class="dim">(needs a quick flag enabled)</span></li>
+				<li>Brave <span class="dim">(needs one flag enabled)</span></li>
 			</ul>
 			<p class="fine">
-				Your data never leaves your computer either way. This is only about which browsers ship the
-				API needed to read the folder.
+				Your data never leaves your computer either way. The only blocker is which browsers ship
+				the API that reads the folder.
 			</p>
 		{/if}
 	</div>
@@ -72,7 +72,7 @@
 		max-width: 480px;
 		background: var(--bg-elev);
 		border: 1px solid var(--border);
-		border-radius: 12px;
+		border-radius: 5px;
 		padding: 32px;
 		text-align: center;
 	}
@@ -103,7 +103,7 @@
 		font-size: 12px;
 		background: var(--bg-input);
 		padding: 2px 6px;
-		border-radius: 4px;
+		border-radius: 2px;
 		color: var(--text);
 		word-break: break-all;
 	}

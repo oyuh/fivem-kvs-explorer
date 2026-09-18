@@ -2,7 +2,7 @@
 	"name": "kvs-explorer",
 	"version": "0.1.0",
 	"private": true,
-	"description": "Browser-based explorer and editor for the FiveM KVS (LevelDB) store. Rust → WebAssembly core with a SvelteKit front-end. Everything runs client-side.",
+	"description": "Browser-based explorer and editor for the FiveM KVS (LevelDB) store. Rust → WebAssembly core with a SvelteKit front-end. Everything runs in the browser.",
 	"scripts": {
 		"setup": "cd web && bun install",
 		"dev": "bun run wasm:dev && cd web && bun run dev",

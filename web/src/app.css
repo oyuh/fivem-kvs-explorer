@@ -93,7 +93,7 @@ button {
 	color: var(--text);
 	background: var(--bg-elev-2);
 	border: 1px solid var(--border-strong);
-	border-radius: 6px;
+	border-radius: 2px;
 	padding: 6px 12px;
 	transition: background 0.12s, border-color 0.12s, color 0.12s;
 }
@@ -133,7 +133,7 @@ select {
 	color: var(--text);
 	background: var(--bg-input);
 	border: 1px solid var(--border);
-	border-radius: 6px;
+	border-radius: 2px;
 	padding: 7px 9px;
 	width: 100%;
 }
@@ -150,7 +150,7 @@ select:focus {
 }
 ::-webkit-scrollbar-thumb {
 	background: var(--border-strong);
-	border-radius: 6px;
+	border-radius: 2px;
 	border: 2px solid var(--bg);
 }
 ::-webkit-scrollbar-thumb:hover {
@@ -164,7 +164,7 @@ select:focus {
 	text-transform: uppercase;
 	letter-spacing: 0.04em;
 	padding: 1px 6px;
-	border-radius: 4px;
+	border-radius: 2px;
 	background: var(--bg-elev-2);
 	color: var(--text-dim);
 	border: 1px solid var(--border);

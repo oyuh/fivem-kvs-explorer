@@ -110,7 +110,7 @@
 		resize: vertical;
 		overflow: hidden;
 		border: 1px solid var(--border);
-		border-radius: 6px;
+		border-radius: 2px;
 		background: var(--bg-input);
 	}
 	.surface pre,

@@ -9,7 +9,7 @@
 	<title>KVS Explorer · FiveM Key-Value Store</title>
 	<meta
 		name="description"
-		content="Explore and edit your FiveM KVS folder entirely in the browser. Nothing is uploaded."
+		content="Explore and edit your FiveM KVS folder in the browser. The bytes never leave your machine."
 	/>
 	<link rel="icon" href={favicon} />
 </svelte:head>

@@ -34,7 +34,7 @@
 		try {
 			const dir = await directoryFromDrop(e.dataTransfer);
 			if (!dir) {
-				localError = 'That doesn’t look like a folder. Drag the whole kvs folder, not a file.';
+				localError = 'That is not a folder. Drag the whole kvs folder over.';
 				return;
 			}
 			onpick(dir);
@@ -64,7 +64,7 @@
 			{:else}
 				<div class="dz-icon"><Icon name="folder-open" size={52} strokeWidth={1.25} /></div>
 				<h2>Open your KVS folder</h2>
-				<p class="sub">Drag it anywhere here, or use the buttons.</p>
+				<p class="sub">Drop it anywhere on this page, or use the buttons.</p>
 				<div class="actions">
 					<button class="primary" onclick={onbrowse}>
 						<Icon name="folder" size={15} /> Open folder
@@ -99,9 +99,9 @@
 			</ol>
 		</div>
 		<ul class="notes">
-			<li>Everything runs right here in your browser; nothing gets uploaded.</li>
+			<li>Everything runs in your browser. Nothing leaves your machine.</li>
 			<li>Your real folder stays untouched until you copy it back.</li>
-			<li>A backup zip is offered before your first save.</li>
+			<li>Your first save downloads a backup zip of the original files.</li>
 		</ul>
 	</aside>
 </div>
@@ -120,7 +120,7 @@
 		padding: 24px;
 		border: 2px dashed transparent;
 		margin: 12px;
-		border-radius: 14px;
+		border-radius: 2px;
 		transition: border-color 0.15s, background 0.15s;
 	}
 	.empty.dragging .main {
@@ -155,7 +155,7 @@
 		margin-top: 12px;
 		background: var(--danger-dim);
 		border: 1px solid var(--danger);
-		border-radius: 8px;
+		border-radius: 3px;
 		padding: 10px 12px;
 		font-size: 13px;
 		white-space: pre-wrap;
@@ -178,7 +178,7 @@
 	.callout {
 		background: var(--bg-elev-2);
 		border: 1px solid var(--border-strong);
-		border-radius: 10px;
+		border-radius: 2px;
 		padding: 14px;
 	}
 	.callout-title {
@@ -207,7 +207,7 @@
 		font-size: 12px;
 		background: var(--bg-input);
 		padding: 2px 6px;
-		border-radius: 4px;
+		border-radius: 2px;
 		color: var(--text);
 		word-break: break-all;
 	}
@@ -217,7 +217,7 @@
 		background: var(--bg-input);
 		border: 1px solid var(--border-strong);
 		border-bottom-width: 2px;
-		border-radius: 4px;
+		border-radius: 2px;
 		padding: 1px 5px;
 	}
 	.copy {

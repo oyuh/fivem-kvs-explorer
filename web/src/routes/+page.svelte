@@ -107,13 +107,13 @@
 		try {
 			if (!(await ensureReadWrite(dir))) {
 				loadError =
-					'Read & write permission was denied. If that folder lives inside AppData, copy it to your Desktop first (browsers refuse to touch AppData).';
+					'The browser denied read & write access. If that folder lives inside AppData, copy it to your Desktop first. Browsers refuse to touch AppData.';
 				return;
 			}
 			const files = await readFolder(dir);
 			if (!looksLikeLevelDb(files)) {
 				loadError =
-					'That folder has no CURRENT file, so it isn’t a FiveM kvs (LevelDB) database. Pick the “kvs” folder itself.';
+					'That folder has no CURRENT file, so it is not a FiveM kvs (LevelDB) database. Pick the kvs folder itself.';
 				return;
 			}
 			const s = await openSession(dir, files);
@@ -126,7 +126,7 @@
 			modifiedKeys = new Set();
 			bulkSelected = new Set();
 		} catch (err) {
-			loadError = `Couldn’t open the database: ${err}`;
+			loadError = `Could not open the database: ${err}`;
 		} finally {
 			loading = false;
 		}
@@ -155,7 +155,7 @@
 			modifiedKeys = new Set();
 			bulkSelected = new Set();
 		} catch (err) {
-			loadError = `Couldn’t load sample data: ${err}`;
+			loadError = `Could not load the sample data: ${err}`;
 		} finally {
 			loading = false;
 		}
@@ -177,7 +177,7 @@
 			modifiedKeys = new Set(modifiedKeys).add(rawKey);
 			refreshEntries();
 			detail = getValue(session, rawKey);
-			flash('ok', 'Change staged. Save to disk when you\'re ready.');
+			flash('ok', 'Change staged. Hit Save to disk when you are ready.');
 		} catch (err) {
 			flash('err', `Edit failed: ${err}`);
 		}
@@ -190,7 +190,7 @@
 			modifiedKeys = new Set(modifiedKeys).add(rawKey);
 			if (selectedKey === rawKey) selectedKey = null;
 			refreshEntries();
-			flash('ok', 'Key removed. It goes away for real on the next Save to disk.');
+			flash('ok', 'Key removed. The next Save to disk applies it.');
 		} catch (err) {
 			flash('err', `Delete failed: ${err}`);
 		}
@@ -231,12 +231,12 @@
 		if (!session) return;
 		try {
 			if (!(await ensureRead(dir))) {
-				flash('err', 'Read permission was denied for that folder.');
+				flash('err', 'The browser denied read access to that folder.');
 				return;
 			}
 			const files = await readFolder(dir);
 			if (!looksLikeLevelDb(files)) {
-				flash('err', 'That folder isn’t a kvs (LevelDB) database.');
+				flash('err', 'That folder is not a kvs (LevelDB) database.');
 				return;
 			}
 			const src = await openImportSource(files);
@@ -245,7 +245,7 @@
 			importEntries = listEntries(src);
 			importOpen = true;
 		} catch (err) {
-			flash('err', `Couldn’t open import folder: ${err}`);
+			flash('err', `Could not open the import folder: ${err}`);
 		}
 	}
 
@@ -365,7 +365,7 @@
 		modifiedKeys = next;
 		bulkSelected = new Set();
 		refreshEntries();
-		flash('ok', `Removed ${n} key${n === 1 ? '' : 's'}. Save to disk to make it stick.`);
+		flash('ok', `Removed ${n} key${n === 1 ? '' : 's'}. Save to disk to apply it.`);
 	}
 
 	function onDragEnter(e: DragEvent) {
@@ -662,7 +662,7 @@
 		font-size: 11px;
 		color: var(--text-dim);
 		border: 1px solid var(--border-strong);
-		border-radius: 10px;
+		border-radius: 2px;
 		padding: 2px 9px;
 		white-space: nowrap;
 	}
@@ -709,7 +709,7 @@
 		width: 16px;
 		height: 16px;
 		border: 1px solid var(--border-strong);
-		border-radius: 4px;
+		border-radius: 2px;
 		display: grid;
 		place-items: center;
 		color: var(--accent-text);
@@ -764,7 +764,7 @@
 		gap: 12px;
 		padding: 30px 44px;
 		border: 2px dashed var(--accent);
-		border-radius: 14px;
+		border-radius: 2px;
 		background: var(--bg-elev);
 		color: var(--text);
 		font-size: 15px;
@@ -775,7 +775,7 @@
 		left: 50%;
 		transform: translateX(-50%);
 		padding: 10px 16px;
-		border-radius: 8px;
+		border-radius: 3px;
 		font-size: 13px;
 		box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
 		z-index: 60;

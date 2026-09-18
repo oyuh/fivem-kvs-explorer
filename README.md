@@ -1,9 +1,8 @@
 # KVS Explorer
 
-A browser-based explorer and editor for the FiveM KVS store. Under the hood the KVS is
-just a [LevelDB] database, so this app opens it with a Rust core compiled to WebAssembly
-and a SvelteKit UI on top. There's no server and no upload step: the bytes never leave
-your machine.
+A browser-based explorer and editor for the FiveM KVS store. The KVS is a [LevelDB]
+database, so this app opens it with a Rust core compiled to WebAssembly and a SvelteKit UI
+on top. No server, no upload step. The bytes never leave your machine.
 
 ## The data format
 
@@ -15,7 +14,7 @@ directory: `CURRENT`, `MANIFEST-*`, `*.ldb` tables, `*.log` (the WAL), `LOG`, `L
 A few things worth knowing about what's inside:
 
 - Keys are namespaced. Resource entries are stored as `res:<resource>:<key>`, and
-  resource version metadata as `rv:<...>`. Grouping by resource is just a prefix split.
+  resource version metadata as `rv:<...>`. Grouping by resource is a prefix split.
 - Values are msgpack. The native packs the Lua value directly: `SetResourceKvp` gives you
   a string, `SetResourceKvpInt` an int, `SetResourceKvpFloat` a 32-bit float. Resources
   that store tables usually `json.encode` them into a string value first.
@@ -23,7 +22,7 @@ A few things worth knowing about what's inside:
 
 ## Architecture
 
-```
+```text
 ┌──────────────────────────── Browser (Chromium) ───────────────────────────┐
 │  SvelteKit SPA (Svelte 5 runes, adapter-static)                            │
 │    components/ ── ResourceTree │ EntryList (virtualized) │ ValueDetail     │
@@ -83,7 +82,7 @@ inside the MemEnv. On save, `export_changes()` content-hashes the current MemEnv
 against the load-time snapshot and returns only the deltas. `kvs.ts` then writes changed
 files via `FileSystemFileHandle.createWritable()` and calls `removeEntry()` for deletions.
 Because leveldb itself generated the files, the on-disk DB stays consistent. Before the
-first write, a backup zip of the original bytes (built with `fflate`) is downloaded.
+first write, the app downloads a backup zip of the original bytes, built with `fflate`.
 
 ### `web` (SvelteKit)
 
@@ -91,19 +90,21 @@ A pure SPA: `ssr = false` and `adapter-static` with an `index.html` fallback, so
 to plain static files. `lib/kvs.ts` is the only place that touches the File System Access
 API: `getAsFileSystemHandle()` for drag and drop, `showDirectoryPicker({mode})` for the
 button, `dir.entries()` to read bytes, and `createWritable()`/`removeEntry()` to write
-back. The wasm module (built with `--target web`) is initialized lazily. The UI
-virtualizes the key list and only fully decodes a value when you select it.
+back. The app loads the wasm module (built with `--target web`) lazily, virtualizes the key
+list, and only fully decodes a value when you select it.
 
-## Browser constraints (hard limits, not bugs)
+## Browser constraints
+
+The three limits below come from the browser, not from this app:
 
 - The File System Access API means Chromium only. Firefox and Safari don't implement it,
   and Brave ships it disabled behind `brave://flags/#file-system-access-api`.
 - Chromium blocklists AppData. `%APPDATA%` and `%LOCALAPPDATA%` (and all of their
-  descendants) are `kBlockAllChildren` in Chromium's File System Access blocklist, so the
-  kvs folder can't be opened in place. The home directory is `kDontBlockChildren`, so the
-  workflow is: copy the folder somewhere like the Desktop, edit it, copy it back. The app
-  walks you through this in the UI.
-- A secure context is required (`localhost` or HTTPS).
+  descendants) are `kBlockAllChildren` in Chromium's File System Access blocklist, so you
+  can't open the kvs folder in place. The home directory is `kDontBlockChildren`, so the
+  workflow is to copy the folder somewhere like the Desktop, edit it, then copy it back.
+  The start screen lists those steps.
+- The page has to run in a secure context (`localhost` or HTTPS).
 
 ## Requirements
 
@@ -121,7 +122,7 @@ virtualizes the key list and only fully decodes a value when you select it.
 | `bun run build` | build the release wasm + static site into `web/build/` |
 | `bun run check` | `svelte-check` |
 | `bun run test` | `cargo test` (native) + the wasm-binding smoke test |
-| `bun run wasm` / `wasm:dev` | rebuild just the wasm core into `web/src/lib/wasm` |
+| `bun run wasm` / `wasm:dev` | rebuild only the wasm core into `web/src/lib/wasm` |
 | `bun run fixture` | regenerate the LevelDB test/sample fixture |
 
 ```bash
@@ -145,14 +146,14 @@ bun run setup && bun run dev   # then open the localhost URL in Chrome/Edge
 
 ## Deploy (Vercel)
 
-Vercel's build image has no Rust toolchain, so the compiled wasm core is committed at
+Vercel's build image has no Rust toolchain, so the repo commits the compiled wasm core at
 `web/src/lib/wasm/` and Vercel builds only the Rust-free SvelteKit app. [vercel.json](vercel.json)
 sets `installCommand`, `buildCommand`, and `outputDirectory`.
 
 1. Import the repo at [vercel.com/new](https://vercel.com/new).
 2. Leave Root Directory as `./` and Framework Preset as Other.
-3. Deploy. Every push to `master` auto-deploys, and the dev-only sample data is stripped
-   from production builds.
+3. Deploy. Every push to `master` auto-deploys, and production builds drop the dev-only
+   sample data.
 
 CI ([.github/workflows/deploy.yml](.github/workflows/deploy.yml)) rebuilds the wasm and runs
 `bun run build` + `bun run check` + `cargo test` on every push and PR.
@@ -162,7 +163,7 @@ CI ([.github/workflows/deploy.yml](.github/workflows/deploy.yml)) rebuilds the w
 
 ## Project layout
 
-```
+```text
 kvs-core/                 Rust → wasm
   src/lib.rs              portable core (native cargo test)
   src/wasm.rs             wasm-bindgen KvsDb

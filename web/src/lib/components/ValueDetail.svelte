@@ -197,7 +197,7 @@
 			{:else if structured}
 				<div class="lbl"><Icon name="braces" size={13} /> Value ({detail.type})</div>
 				<pre class="readonly"><code>{@html structuredHtml}</code></pre>
-				<p class="note">Editing {detail.type} values isn't supported yet, so this one's view-only.</p>
+				<p class="note">Editing {detail.type} values isn't supported yet. This one is view-only.</p>
 			{:else}
 				<div class="lbl">Value ({detail.type})</div>
 				<pre class="readonly">{safePretty(detail.value)}</pre>
@@ -206,7 +206,7 @@
 			{#if localErr}<div class="err">{localErr}</div>{/if}
 
 			<details class="hex">
-				<summary>Raw bytes (hex, for the adventurous)</summary>
+				<summary>Raw bytes (hex)</summary>
 				<textarea
 					class="hex-edit"
 					rows="3"
@@ -221,7 +221,7 @@
 					<div class="spacer"></div>
 					<button class="sm" disabled={!hexBytes || !hexDirty} onclick={applyHex}>Save raw bytes</button>
 				</div>
-				<p class="note">Overwrites the value with these exact bytes (stored verbatim).</p>
+				<p class="note">Stores these exact bytes as the value, with no msgpack re-encoding.</p>
 			</details>
 		</div>
 
@@ -325,7 +325,7 @@
 		font-size: 12px;
 		background: var(--bg-input);
 		border: 1px solid var(--border);
-		border-radius: 6px;
+		border-radius: 2px;
 		padding: 10px;
 		overflow: auto;
 		max-height: 320px;
@@ -343,7 +343,7 @@
 	.err {
 		background: var(--danger-dim);
 		border: 1px solid var(--danger);
-		border-radius: 6px;
+		border-radius: 2px;
 		padding: 8px 10px;
 		font-size: 12px;
 	}

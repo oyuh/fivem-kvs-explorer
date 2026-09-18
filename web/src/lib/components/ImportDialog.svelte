@@ -100,8 +100,8 @@
 
 		{#if conflictCount > 0 && !overwrite}
 			<div class="conflict-note">
-				{conflictCount} key{conflictCount === 1 ? '' : 's'} already exist here, so they're skipped.
-				Tick “Overwrite existing” if you want them anyway.
+				{conflictCount} key{conflictCount === 1 ? '' : 's'} already exist here, so the import skips
+				them. Tick "Overwrite existing" to bring them in anyway.
 			</div>
 		{/if}
 
@@ -160,7 +160,7 @@
 		height: min(620px, 90vh);
 		background: var(--bg-elev);
 		border: 1px solid var(--border-strong);
-		border-radius: 12px;
+		border-radius: 5px;
 		overflow: hidden;
 	}
 	header {
@@ -264,7 +264,7 @@
 		width: 16px;
 		height: 16px;
 		border: 1px solid var(--border-strong);
-		border-radius: 4px;
+		border-radius: 2px;
 		display: grid;
 		place-items: center;
 		color: var(--accent-text);
@@ -296,7 +296,7 @@
 		letter-spacing: 0.04em;
 		color: var(--warn);
 		border: 1px solid var(--border-strong);
-		border-radius: 4px;
+		border-radius: 2px;
 		padding: 1px 5px;
 	}
 	footer {

@@ -138,7 +138,7 @@
 			</div>
 
 			{#if conflict}
-				<div class="warn"><Icon name="alert" size={14} /> This key already exists, so adding will overwrite it.</div>
+				<div class="warn"><Icon name="alert" size={14} /> This key already exists. Adding overwrites it.</div>
 			{/if}
 		</div>
 
@@ -171,7 +171,7 @@
 		max-height: 90vh;
 		background: var(--bg-elev);
 		border: 1px solid var(--border-strong);
-		border-radius: 12px;
+		border-radius: 5px;
 		overflow: hidden;
 	}
 	header {
@@ -231,7 +231,7 @@
 		color: var(--warn);
 		background: var(--bg-elev-2);
 		border: 1px solid var(--border-strong);
-		border-radius: 6px;
+		border-radius: 2px;
 		padding: 8px 10px;
 	}
 	footer {

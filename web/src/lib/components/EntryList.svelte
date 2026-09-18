@@ -88,7 +88,7 @@
 		height: 16px;
 		margin: 0 4px 0 11px;
 		border: 1px solid var(--border-strong);
-		border-radius: 4px;
+		border-radius: 2px;
 		display: grid;
 		place-items: center;
 		color: var(--accent-text);

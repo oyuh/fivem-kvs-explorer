@@ -93,7 +93,7 @@
 		text-align: left;
 		background: transparent;
 		border: 1px solid transparent;
-		border-radius: 6px;
+		border-radius: 2px;
 		padding: 6px 9px;
 		margin-bottom: 1px;
 	}
@@ -120,7 +120,7 @@
 		font-size: 11px;
 		color: var(--text-faint);
 		background: var(--bg);
-		border-radius: 10px;
+		border-radius: 2px;
 		padding: 0 7px;
 		min-width: 22px;
 		text-align: center;
