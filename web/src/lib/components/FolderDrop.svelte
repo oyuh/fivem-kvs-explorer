@@ -70,9 +70,15 @@
 						<Icon name="folder" size={15} /> Open folder
 					</button>
 					{#if onsample}
-						<button onclick={onsample}>Explore sample data</button>
+						<button onclick={onsample}>Try the demo</button>
 					{/if}
 				</div>
+				{#if onsample}
+					<p class="hint">
+						The demo opens a read-only sample store, so you can look around before you touch
+						your own files.
+					</p>
+				{/if}
 			{/if}
 			{#if error || localError}
 				<div class="error">{error ?? localError}</div>
@@ -150,6 +156,11 @@
 	.actions {
 		display: flex;
 		gap: 10px;
+	}
+	.hint {
+		margin: 4px 0 0;
+		font-size: 12px;
+		color: var(--text-faint);
 	}
 	.error {
 		margin-top: 12px;

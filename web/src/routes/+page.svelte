@@ -66,9 +66,6 @@
 	let dragImport = $state(false);
 	let dragDepth = 0;
 
-	// The bundled sample data is a dev-only convenience; never shipped to prod.
-	const dev = import.meta.env.DEV;
-
 	// Add-entry dialog.
 	let addOpen = $state(false);
 	let addDefaultResource = $state('');
@@ -147,7 +144,7 @@
 			const files = await loadSample(base);
 			const s = await openSession(null, files);
 			session = s;
-			folderName = 'sample data';
+			folderName = 'demo data';
 			entries = listEntries(s);
 			selectedGroup = 'all';
 			selectedKey = null;
@@ -456,7 +453,7 @@
 				</div>
 				<div class="grow"></div>
 				{#if readOnly}
-					<span class="ro-badge" title="Sample data is read-only.">sample · read-only</span>
+					<span class="ro-badge" title="The demo store is read-only.">demo · read-only</span>
 				{:else if modifiedKeys.size > 0}
 					<span class="modified">{modifiedKeys.size} unsaved</span>
 				{/if}
@@ -465,7 +462,7 @@
 				<button
 					class="primary"
 					disabled={readOnly || modifiedKeys.size === 0 || saving}
-					title={readOnly ? 'Read-only sample data' : ''}
+					title={readOnly ? 'The demo store is read-only' : ''}
 					onclick={save}
 				>
 					<Icon name="save" size={14} />
@@ -475,7 +472,7 @@
 			{:else}
 				<div class="grow"></div>
 				<button class="primary" onclick={openFolder}><Icon name="folder" size={14} /> Open folder</button>
-				{#if dev}<button onclick={loadSampleData}>Explore sample</button>{/if}
+				<button onclick={loadSampleData}>Try the demo</button>
 			{/if}
 			<button class="icon-btn" title="Toggle light / dark" onclick={toggleTheme}>
 				<Icon name={theme === 'dark' ? 'sun' : 'moon'} size={15} />
@@ -563,7 +560,7 @@
 				error={loadError}
 				onpick={handlePick}
 				onbrowse={openFolder}
-				onsample={dev ? loadSampleData : undefined}
+				onsample={loadSampleData}
 			/>
 		{/if}
 

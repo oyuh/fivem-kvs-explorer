@@ -20,6 +20,8 @@
 
 # Logs
 *.log
+# ...except the demo fixture's WAL, which the deployed sample store needs.
+!web/static/sample/*.log
 npm-debug.log*
 bun-debug.log*
 

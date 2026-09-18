@@ -87,7 +87,9 @@ first write, the app downloads a backup zip of the original bytes, built with `f
 ### `web` (SvelteKit)
 
 A pure SPA: `ssr = false` and `adapter-static` with an `index.html` fallback, so it builds
-to plain static files. `lib/kvs.ts` is the only place that touches the File System Access
+to plain static files. The **Try the demo** button opens the fixture in
+`web/static/sample/` through the same code path as a real folder, minus the directory
+handle, which leaves the session read-only. `lib/kvs.ts` is the only place that touches the File System Access
 API: `getAsFileSystemHandle()` for drag and drop, `showDirectoryPicker({mode})` for the
 button, `dir.entries()` to read bytes, and `createWritable()`/`removeEntry()` to write
 back. The app loads the wasm module (built with `--target web`) lazily, virtualizes the key
@@ -152,8 +154,7 @@ sets `installCommand`, `buildCommand`, and `outputDirectory`.
 
 1. Import the repo at [vercel.com/new](https://vercel.com/new).
 2. Leave Root Directory as `./` and Framework Preset as Other.
-3. Deploy. Every push to `master` auto-deploys, and production builds drop the dev-only
-   sample data.
+3. Deploy. Every push to `master` auto-deploys.
 
 CI ([.github/workflows/deploy.yml](.github/workflows/deploy.yml)) rebuilds the wasm and runs
 `bun run build` + `bun run check` + `cargo test` on every push and PR.
@@ -169,6 +170,7 @@ kvs-core/                 Rust → wasm
   src/wasm.rs             wasm-bindgen KvsDb
   tests/compat.rs         C++-LevelDB compatibility + round-trip tests
 web/
+  static/sample/          demo LevelDB served over HTTP (the Try the demo button)
   src/lib/kvs.ts          File System Access ⇄ wasm bridge
   src/lib/json.ts         no-dep JSON tokenizer/highlighter/validator
   src/lib/components/     ResourceTree, EntryList, ValueDetail, JsonEditor,
