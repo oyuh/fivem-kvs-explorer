@@ -143,6 +143,6 @@
 		outline: none;
 	}
 	.surface textarea::selection {
-		background: rgba(255, 255, 255, 0.18);
+		background: var(--selection);
 	}
 </style>
